@@ -1,0 +1,17 @@
+
+url,label
+https://www.google.com,legitimate
+https://www.wikipedia.org,legitimate
+https://www.python.org,legitimate
+https://www.github.com,legitimate
+https://www.microsoft.com,legitimate
+http://login-verify-account.invalid,phishing
+http://secure-bank-update.invalid,phishing
+http://free-prize-claim.invalid,phishing
+http://account-password-check.invalid,phishing
+http://urgent-payment-alert.invalid,phishing
+https://www.example.com,legitimate
+http://suspicious-login.invalid,phishing
+https://www.mozilla.org,legitimate
+http://fake-reward-center.invalid,phishing
+https://www.openai.com,legitimate
