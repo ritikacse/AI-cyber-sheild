@@ -1,497 +1,263 @@
+
 import streamlit as st
 import pandas as pd
+from pathlib import Path
 
 from detectors.url_detector import URLDetector
-from detectors.email_detector import EmailDetector
-from detectors.network_detector import NetworkDetector
+from detectors.text_detector import TextDetector
 
 
-# --------------------------------------------------
-# PAGE CONFIG
-# --------------------------------------------------
-
+# =========================
+# PAGE CONFIGURATION
+# =========================
 st.set_page_config(
-    page_title="AI-CyberShield",
+    page_title="AI Cyber Shield",
     page_icon="🛡️",
     layout="wide"
 )
 
+BASE_DIR = Path(__file__).resolve().parent
 
-# --------------------------------------------------
-# TITLE
-# --------------------------------------------------
 
-st.title("🛡️ AI-CyberShield")
-st.subheader("AI-Powered Cybersecurity Threat Detection Platform")
+# =========================
+# CUSTOM DESIGN
+# =========================
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(135deg, #06111f, #102b46, #02060c);
+    color: #eaf6ff;
+}
+h1, h2, h3 {
+    color: #00d9ff !important;
+}
+[data-testid="stMetric"] {
+    background: rgba(0, 217, 255, 0.08);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 217, 255, 0.25);
+}
+div.stButton > button {
+    background-color: #007ca8;
+    color: white;
+    border: 1px solid #00d9ff;
+    border-radius: 8px;
+}
+</style>
+""", unsafe_allow_html=True)
 
+
+# =========================
+# INITIALIZE DETECTORS
+# =========================
+url_detector = URLDetector()
+text_detector = TextDetector()
+
+
+# =========================
+# DATASET LOADER
+# =========================
+def load_dataset(filename):
+    file_path = BASE_DIR / filename
+
+    if not file_path.exists():
+        return None
+
+    try:
+        return pd.read_csv(file_path)
+    except (OSError, pd.errors.ParserError, UnicodeDecodeError):
+        return None
+
+
+# =========================
+# HEADER
+# =========================
+st.title("🛡️ AI CYBER SHIELD")
 st.markdown(
-    """
-    AI-CyberShield is a unified cybersecurity platform for detecting
-    malicious URLs, phishing emails and suspicious network activity.
-    """
+    "### Intelligent Cybersecurity Monitoring Dashboard"
+)
+st.caption(
+    "Educational URL screening, suspicious email analysis, "
+    "and network dataset exploration."
 )
 
-st.divider()
+# =========================
+# DASHBOARD METRICS
+# =========================
+url_df = load_dataset("url_dataset.csv")
+email_df = load_dataset("email_dataset.csv")
+network_df = load_dataset("network_dataset.csv")
 
+c1, c2, c3 = st.columns(3)
 
-# --------------------------------------------------
-# SIDEBAR
-# --------------------------------------------------
-
-st.sidebar.title("🔐 Detection Modules")
-
-module = st.sidebar.selectbox(
-    "Select Detection Module",
-    [
-        "🏠 Dashboard",
-        "🌐 URL Detection",
-        "📧 Email Detection",
-        "🌐 Network Detection",
-       
-    ]
-)
-
-
-# --------------------------------------------------
-# DASHBOARD
-# --------------------------------------------------
-
-if module == "🏠 Dashboard":
-
-    st.header("AI-CyberShield Dashboard")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric(
-            "🌐 URL Detection",
-            "Active"
-        )
-
-    with col2:
-        st.metric(
-            "📧 Email Detection",
-            "Active"
-        )
-
-    with col3:
-        st.metric(
-            "🌐 Network Detection",
-            "Active"
-        )
-
-    st.divider()
-
-    st.info(
-        "Select a detection module from the sidebar to analyze a threat."
+with c1:
+    st.metric(
+        "URL Records",
+        len(url_df) if url_df is not None else 0
     )
 
-    st.markdown(
-        """
-        ### Current Modules
+with c2:
+    st.metric(
+        "Email Records",
+        len(email_df) if email_df is not None else 0
+    )
 
-        - 🌐 Malicious URL Detection
-        - 📧 Phishing Email Detection
-        - 🌐 Network Threat Detection
-        
-
-        ### Security Pipeline
-
-        `Input → Feature Extraction → AI Model → Risk Analysis → Result`
-        """
+with c3:
+    st.metric(
+        "Network Records",
+        len(network_df) if network_df is not None else 0
     )
 
 
-# --------------------------------------------------
-# URL DETECTION
-# --------------------------------------------------
+# =========================
+# APPLICATION TABS
+# =========================
+url_tab, email_tab, network_tab, data_tab, about_tab = st.tabs([
+    "🔗 URL Scanner",
+    "📧 Email Scanner",
+    "🌐 Network Data",
+    "📊 Datasets",
+    "ℹ️ About"
+])
 
-elif module == "🌐 URL Detection":
 
-    st.header("🌐 Malicious URL Detection")
+# =========================
+# URL SCANNER
+# =========================
+with url_tab:
+    st.subheader("Check a suspicious URL")
 
     url = st.text_input(
         "Enter URL",
         placeholder="https://example.com"
     )
 
-    if st.button("🔍 Analyze URL"):
-
+    if st.button("Analyze URL", key="url_scan"):
         if not url.strip():
-
             st.warning("Please enter a URL.")
-
         else:
-
             try:
+                result = url_detector.predict(url)
 
-                detector = URLDetector()
+                st.write("**Assessment:**", result.get(
+                    "risk", result.get("status", "Unknown")
+                ))
 
-                result = detector.predict(url)
+                for reason in result.get("reasons", []):
+                    st.write(f"- {reason}")
 
-                st.subheader("Detection Result")
-
-                if isinstance(result, dict):
-
-                    prediction = result.get(
-                        "prediction",
-                        result.get("label", "Unknown")
-                    )
-
-                    risk = result.get(
-                        "risk",
-                        result.get("risk_score", "N/A")
-                    )
-
-                    st.write(
-                        f"**Prediction:** {prediction}"
-                    )
-
-                    st.write(
-                        f"**Risk:** {risk}"
-                    )
-
-                    if str(prediction).lower() in [
-                        "malicious",
-                        "phishing",
-                        "unsafe",
-                        "suspicious"
-                    ]:
-
-                        st.error("⚠️ Potentially dangerous URL")
-
-                    else:
-
-                        st.success("✅ URL appears safe")
-
-                else:
-
-                    st.write(result)
-
-            except Exception as e:
-
-                st.error(
-                    f"URL detector error: {str(e)}"
-                )
-
-
-# --------------------------------------------------
-# EMAIL DETECTION
-# --------------------------------------------------
-
-elif module == "📧 Email Detection":
-
-    st.header("📧 Phishing Email Detection")
-
-    sender = st.text_input(
-        "Sender Email",
-        placeholder="example@gmail.com"
-    )
-
-    subject = st.text_input(
-        "Email Subject"
-    )
-
-    body = st.text_area(
-        "Email Content",
-        height=250,
-        placeholder="Paste the email content here..."
-    )
-
-    if st.button("🔍 Analyze Email"):
-
-        if not body.strip():
-
-            st.warning("Please enter email content.")
-
-        else:
-
-            try:
-
-                detector = EmailDetector()
-
-                result = detector.predict(
-                    sender=sender,
-                    subject=subject,
-                    body=body
-                )
-
-                st.subheader("Detection Result")
-
-                if isinstance(result, dict):
-
-                    prediction = result.get(
-                        "prediction",
-                        result.get("label", "Unknown")
-                    )
-
-                    risk = result.get(
-                        "risk",
-                        result.get("risk_score", "N/A")
-                    )
-
-                    st.write(
-                        f"**Prediction:** {prediction}"
-                    )
-
-                    st.write(
-                        f"**Risk:** {risk}"
-                    )
-
-                    if str(prediction).lower() in [
-                        "phishing",
-                        "malicious",
-                        "suspicious",
-                        "spam"
-                    ]:
-
-                        st.error(
-                            "⚠️ Potential phishing/malicious email"
-                        )
-
-                    else:
-
-                        st.success(
-                            "✅ Email appears legitimate"
-                        )
-
-                else:
-
-                    st.write(result)
-
-            except Exception as e:
-
-                st.error(
-                    f"Email detector error: {str(e)}"
-                )
-
-
-# --------------------------------------------------
-# NETWORK DETECTION
-# --------------------------------------------------
-
-elif module == "🌐 Network Detection":
-
-    st.header("🌐 Network Threat Detection")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        source_ip = st.text_input(
-            "Source IP",
-            placeholder="192.168.1.10"
-        )
-
-        destination_ip = st.text_input(
-            "Destination IP",
-            placeholder="8.8.8.8"
-        )
-
-        protocol = st.selectbox(
-            "Protocol",
-            [
-                "TCP",
-                "UDP",
-                "ICMP",
-                "HTTP",
-                "HTTPS"
-            ]
-        )
-
-    with col2:
-
-        source_port = st.number_input(
-            "Source Port",
-            min_value=0,
-            max_value=65535,
-            value=443
-        )
-
-        destination_port = st.number_input(
-            "Destination Port",
-            min_value=0,
-            max_value=65535,
-            value=80
-        )
-
-        packet_size = st.number_input(
-            "Packet Size",
-            min_value=0,
-            value=500
-        )
-
-    if st.button("🔍 Analyze Network Traffic"):
-
-        try:
-
-            detector = NetworkDetector()
-
-            result = detector.predict(
-                source_ip=source_ip,
-                destination_ip=destination_ip,
-                protocol=protocol,
-                source_port=source_port,
-                destination_port=destination_port,
-                packet_size=packet_size
-            )
-
-            st.subheader("Detection Result")
-
-            if isinstance(result, dict):
-
-                prediction = result.get(
-                    "prediction",
-                    result.get("label", "Unknown")
-                )
-
-                risk = result.get(
-                    "risk",
-                    result.get("risk_score", "N/A")
-                )
-
-                st.write(
-                    f"**Prediction:** {prediction}"
-                )
-
-                st.write(
-                    f"**Risk:** {risk}"
-                )
-
-                if str(prediction).lower() in [
-                    "malicious",
-                    "attack",
-                    "intrusion",
-                    "suspicious"
-                ]:
-
-                    st.error(
-                        "🚨 Suspicious network activity detected"
-                    )
-
-                else:
-
-                    st.success(
-                        "✅ Network traffic appears normal"
-                    )
-
-            else:
-
-                st.write(result)
-
-        except Exception as e:
-
-            st.error(
-                f"Network detector error: {str(e)}"
-            )
-
-
-# --------------------------------------------------
-# FACE DETECTION
-# --------------------------------------------------
-
-elif module == "🧑 Face Detection":
-
-    st.header("🧑 Face Deepfake Detection")
+            except Exception as error:
+                st.error(f"URL detector error: {error}")
 
     st.info(
-        "Face deepfake detection module will be integrated in Phase 2."
+        "This scanner uses the rules implemented in your detector. "
+        "A clean result does not guarantee that a URL is safe."
     )
 
-    uploaded_file = st.file_uploader(
-        "Upload Face Image",
-        type=["jpg", "jpeg", "png"]
+
+# =========================
+# EMAIL SCANNER
+# =========================
+with email_tab:
+    st.subheader("Analyze an email or message")
+
+    email_text = st.text_area(
+        "Paste email content",
+        placeholder="Paste a suspicious email here..."
     )
 
-    if uploaded_file:
+    if st.button("Analyze Email", key="email_scan"):
+        if not email_text.strip():
+            st.warning("Please enter email text.")
+        else:
+            try:
+                result = text_detector.predict(email_text)
 
-        st.image(
-            uploaded_file,
-            caption="Uploaded Face",
-            use_container_width=True
-        )
+                st.write("**Assessment:**", result.get(
+                    "risk", result.get("status", "Unknown")
+                ))
 
+                for reason in result.get("reasons", []):
+                    st.write(f"- {reason}")
+
+            except Exception as error:
+                st.error(f"Text detector error: {error}")
+
+
+# =========================
+# NETWORK DATA
+# =========================
+with network_tab:
+    st.subheader("Network Dataset")
+
+    if network_df is not None:
+        st.dataframe(network_df, use_container_width=True)
+
+        if "label" in network_df.columns:
+            st.subheader("Record labels")
+            st.bar_chart(network_df["label"].value_counts())
+    else:
         st.warning(
-            "Model integration pending."
+            "network_dataset.csv was not found in the repository root."
         )
 
 
-# --------------------------------------------------
-# IMAGE DEEPFAKE DETECTION
-# --------------------------------------------------
+# =========================
+# ALL DATASETS
+# =========================
+with data_tab:
+    st.subheader("Explore Project Datasets")
 
-elif module == "🖼️ Image Deepfake Detection":
+    datasets = {
+        "URL Dataset": url_df,
+        "Email Dataset": email_df,
+        "Network Dataset": network_df
+    }
 
-    st.header("🖼️ Image Deepfake Detection")
+    for title, dataframe in datasets.items():
+        with st.expander(title):
+            if dataframe is not None:
+                st.write(f"Total records: {len(dataframe)}")
+                st.dataframe(dataframe, use_container_width=True)
 
-    uploaded_file = st.file_uploader(
-        "Upload Image",
-        type=["jpg", "jpeg", "png"]
+                st.download_button(
+                    label=f"Download {title}",
+                    data=dataframe.to_csv(index=False),
+                    file_name=title.lower().replace(" ", "_") + ".csv",
+                    mime="text/csv",
+                    key=title
+                )
+            else:
+                st.warning("Dataset file not found.")
+
+
+# =========================
+# ABOUT
+# =========================
+with about_tab:
+    st.subheader("About AI Cyber Shield")
+
+    st.write("""
+    AI Cyber Shield is an educational cybersecurity project.
+
+    Features:
+    - URL risk screening
+    - Suspicious email and message analysis
+    - Network dataset visualization
+    - Dataset exploration and downloads
+
+    The detection results depend on the rules implemented in the
+    detector modules. This version does not independently monitor
+    live network traffic or guarantee accurate threat detection.
+    """)
+
+    st.markdown(
+        "[Cybersecurity awareness resources](https://www.cisa.gov/secure-our-world)"
     )
 
-    if uploaded_file:
 
-        st.image(
-            uploaded_file,
-            caption="Uploaded Image",
-            use_container_width=True
-        )
-
-        st.warning(
-            "Deepfake image model integration pending."
-        )
-
-
-# --------------------------------------------------
-# VIDEO DEEPFAKE DETECTION
-# --------------------------------------------------
-
-elif module == "🎥 Video Deepfake Detection":
-
-    st.header("🎥 Video Deepfake Detection")
-
-    uploaded_file = st.file_uploader(
-        "Upload Video",
-        type=["mp4", "avi", "mov"]
-    )
-
-    if uploaded_file:
-
-        st.video(uploaded_file)
-
-        st.warning(
-            "Deepfake video model integration pending."
-        )
-
-
-# --------------------------------------------------
-# AUDIO DEEPFAKE DETECTION
-# --------------------------------------------------
-
-elif module == "🎵 Audio Deepfake Detection":
-
-    st.header("🎵 Audio Deepfake Detection")
-
-    uploaded_file = st.file_uploader(
-        "Upload Audio",
-        type=["wav", "mp3", "ogg", "m4a"]
-    )
-
-    if uploaded_file:
-
-        st.audio(uploaded_file)
-
-        st.warning(
-            "Deepfake audio model integration pending."
-        )
-
-
-# --------------------------------------------------
+# =========================
 # FOOTER
-# --------------------------------------------------
-
+# =========================
 st.divider()
-
-st.caption(
-    "🛡️ AI-CyberShield | AI-Based Cybersecurity & Deepfake Detection"
-)
+st.caption("AI Cyber Shield | Python + Streamlit")
