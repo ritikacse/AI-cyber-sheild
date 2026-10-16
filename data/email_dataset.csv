@@ -1,0 +1,22 @@
+
+email,label
+"Congratulations! You have won a free prize. Click here to claim it.",spam
+"URGENT! Your bank account is blocked. Verify your details now.",phishing
+"Hello, please find the meeting notes attached.",legitimate
+"Your order has been shipped successfully. Thank you for shopping.",legitimate
+"Click this link immediately to claim your lottery winnings.",phishing
+"Reminder: Your college assignment is due tomorrow.",legitimate
+"Your account will be suspended. Confirm your password immediately.",phishing
+"Thank you for attending today's meeting.",legitimate
+"You have won a gift card. Enter your bank details to receive it.",phishing
+"Your appointment is confirmed for Monday at 10 AM.",legitimate
+"Claim your free reward now. Limited time offer!",spam
+"Please review the attached project report.",legitimate
+"Your password expires today. Click this suspicious link to update it.",phishing
+"Happy birthday! Wishing you a wonderful day.",legitimate
+"Earn money instantly. Pay a registration fee to start.",spam
+"Your monthly electricity bill is ready to view.",legitimate
+"Verify your account now to avoid immediate closure.",phishing
+"The class schedule has been updated for next week.",legitimate
+"Exclusive offer! You have been selected for a free vacation.",spam
+"Please confirm your attendance for tomorrow's seminar.",legitimate
