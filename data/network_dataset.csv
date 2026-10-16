@@ -1,0 +1,17 @@
+
+duration,protocol,src_bytes,dst_bytes,connection_count,label
+12,tcp,1200,3400,3,normal
+2,tcp,45000,200,25,ddos
+8,udp,800,1200,2,normal
+1,icmp,0,0,80,dos
+15,tcp,2500,6000,4,normal
+1,udp,60000,100,60,ddos
+20,tcp,1800,2200,5,normal
+3,tcp,32000,300,30,port_scan
+10,udp,900,1500,2,normal
+2,tcp,500,100,45,brute_force
+18,tcp,2100,4000,3,normal
+1,icmp,0,0,95,dos
+7,tcp,12000,200,18,port_scan
+25,udp,1400,1800,2,normal
+2,tcp,28000,100,35,brute_force
